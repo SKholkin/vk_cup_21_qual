@@ -35,7 +35,8 @@ def get_recs(train_df, u_part):
                     if v1 % 8 != 1 or v2 % 2 != 1: continue
                     col1.append(v1)
                     col2.append(v2)
-                    col3.append(1)
+                    # Adamic/Adar 
+                    col3.append(1 / np.log(len(arr)))
             cur_u = u
             arr = []
         arr.append(v)
@@ -54,7 +55,8 @@ def get_recs(train_df, u_part):
             if v1 % 8 != 1 or v2 % 2 != 1: continue
             col1.append(v1)
             col2.append(v2)
-            col3.append(1.0)
+            # Adamic/Adar 
+            col3.append(1 / np.log(len(arr)))
 
     # sort first by col2 second by col1
     # and then create t and v for indeces of col1 and col2 respectively
@@ -98,6 +100,7 @@ def main(train_file):
         print('start part:', u_part)
         result.extend(get_recs(train_df, u_part))
         print(u_part, 'done')
+        break
 
     with open('subm.txt', 'w') as out:
         out.writelines(result)
