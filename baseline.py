@@ -24,22 +24,23 @@ def get_recs(train_df, u_part):
     col2 = []
     col3 = []
 
-    for u, v in tqdm.tqdm(zip(train_df['u'], train_df['v']), total=len(train_df)):
+    for u, v, h, t in tqdm.tqdm(zip(train_df['u'], train_df['v'], train_df['h'], train_df['t']), total=len(train_df)):
         # для каждой пары друзей u и v
         if u != cur_u:
             # v1 и v2 имеют общего друга cur_u
-            for v1 in arr:
-                for v2 in arr:
+            # эго граф
+            for v1, h1 in arr:
+                for v2, h2 in arr:
                     if v1 % 10 != u_part: continue
                     if v1 >= v2: continue
                     if v1 % 8 != 1 or v2 % 2 != 1: continue
                     col1.append(v1)
                     col2.append(v2)
-                    # Adamic/Adar 
-                    col3.append(1 / np.log(len(arr)))
+                    # Adamic/Adar + interaction dependency
+                    col3.append( (h1 + h2) /(20 * np.log(len(arr))))
             cur_u = u
             arr = []
-        arr.append(v)
+        arr.append((v, h))
 
         # u и v друзья
         if u % 10 == u_part and u < v and v % 2 == 1 and u % 8 == 1:
@@ -48,15 +49,15 @@ def get_recs(train_df, u_part):
             col3.append(np.nan)
 
     # processing of last cur_u
-    for v1 in arr:
-        for v2 in arr:
+    for v1, h1 in arr:
+        for v2, h2 in arr:
             if v1 % 10 != u_part: continue
             if v1 >= v2: continue
             if v1 % 8 != 1 or v2 % 2 != 1: continue
             col1.append(v1)
             col2.append(v2)
-            # Adamic/Adar 
-            col3.append(1 / np.log(len(arr)))
+            # Adamic/Adar + interaction dependency
+            col3.append( (h1 + h2) /(20 * np.log(len(arr))))
 
     # sort first by col2 second by col1
     # and then create t and v for indeces of col1 and col2 respectively
@@ -100,7 +101,6 @@ def main(train_file):
         print('start part:', u_part)
         result.extend(get_recs(train_df, u_part))
         print(u_part, 'done')
-        break
 
     with open('subm.txt', 'w') as out:
         out.writelines(result)
